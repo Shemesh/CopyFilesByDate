@@ -17,6 +17,8 @@ IfMsgBox Yes
     Gui, Destroy
     resultCopy := CopyFiles(sourceFolder, destinationFolder, folderFormat)
     MsgBox % resultCopy.successCount " files copied`n" resultCopy.errorCount " files not copied"
+    IfMsgBox OK
+        ExitApp
 }
 
 TestFilesExist(srcF, dstF, folF)

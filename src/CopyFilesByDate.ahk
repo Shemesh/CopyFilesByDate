@@ -9,18 +9,43 @@ destinationFolder := % A_Desktop "\target"
 folderFormat = yyyy-MM-dd
 notExistArr := []
 
-TestFilesExist()
-MsgBox, 260, copy, Would you like to copy?
-IfMsgBox No
-    ExitApp
-IfMsgBox Yes
-{
-    Gui, Destroy
-    resultCopy := CopyFiles()
-    MsgBox % resultCopy.successCount " files copied`n" resultCopy.errorCount " files not copied"
-    IfMsgBox OK
+Gui Add, Text, x41 y20 w120 h20 +0x200 , From folder
+Gui Add, Edit, x120 y20 w250 h20 vSourceFolderEdit, %sourceFolder%
+Gui Add, Button, x416 y20 w80 h20 gDoBrowseSource, browse
+Gui Add, Text, x41 y50 w120 h20 +0x200 , To folder
+Gui Add, Edit, x120 y50 w250 h20 vDestinationFolderEdit, %destinationFolder%
+Gui Add, Button, x416 y50 w80 h20 gDoBrowseDest, browse
+Gui Add, Text, x40 y80 w120 h20 +0x200 , Date format
+Gui Add, Edit, x120 y80 w181 h20, %folderFormat%
+Gui Add, Button, x41 y110 w80 h20 gDoTestFilesExist, GO
+Gui Add, ListView, x40 y160 w469 h141 +LV0x4000, file|Size|folder name|result
+
+Gui Show, w1022 h544, Window
+return
+
+DoBrowseSource:
+    FileSelectFolder, res, *%sourceFolder%, 0, Select source folder
+    if res != 
+        GuiControl,,SourceFolderEdit,%res%
+return
+
+DoBrowseDest:
+    FileSelectFolder, res, *%destinationFolder%, 0, Select destination folder
+    if res != 
+        GuiControl,,DestinationFolderEdit,%res%
+return
+
+DoTestFilesExist:
+    TestFilesExist()
+    MsgBox, 260, copy, Would you like to copy?
+    IfMsgBox No
         ExitApp
-}
+    IfMsgBox Yes
+    {
+        resultCopy := CopyFiles()
+        MsgBox % resultCopy.successCount " files copied`n" resultCopy.errorCount " files not copied"
+   }
+return
 
 TestFilesExist()
 {
@@ -28,8 +53,6 @@ TestFilesExist()
     global sourceFolder
     global destinationFolder
     global folderFormat
-    
-    Gui, Add, ListView, r20 w700, file|Size|folder name|result
     
     Loop, Files, %sourceFolder%\*.*, R
     {
@@ -53,7 +76,6 @@ TestFilesExist()
         LV_Add("", A_LoopFileName, A_LoopFileSizeKB, formatedTime, msg)
     }
     LV_ModifyCol()
-    Gui, Show
     return
 }
 
@@ -63,10 +85,10 @@ CopyFiles()
     global sourceFolder
     global destinationFolder
     global folderFormat
+    LV_Delete()
     
     errorCount = 0
     successCount = 0
-    Gui, Add, ListView, r20 w700, Name|Size|formatedTime|msg    
     
     for index, filePath in notExistArr 
     {
@@ -89,6 +111,5 @@ CopyFiles()
         LV_Add("", A_LoopFileName, A_LoopFileSizeKB, formatedTime, msg)
     }
     LV_ModifyCol()
-    Gui, Show
     return {errorCount: errorCount, successCount: successCount}
 }

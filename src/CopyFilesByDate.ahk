@@ -11,15 +11,18 @@ notExistArr := []
 
 Gui Add, Text, x41 y20 w120 h20 +0x200 , From folder
 Gui Add, Edit, x120 y20 w250 h20 vSourceFolderEdit, %sourceFolder%
-Gui Add, Button, x416 y20 w80 h20 gDoBrowseSource, browse
+Gui Add, Button, x416 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x41 y50 w120 h20 +0x200 , To folder
 Gui Add, Edit, x120 y50 w250 h20 vDestinationFolderEdit, %destinationFolder%
-Gui Add, Button, x416 y50 w80 h20 gDoBrowseDest, browse
+Gui Add, Button, x416 y50 w80 h20 gDoBrowseDest vButBrowseDest, browse
 Gui Add, Text, x40 y80 w120 h20 +0x200 , Date format
 Gui Add, Edit, x120 y80 w181 h20, %folderFormat%
-Gui Add, Button, x41 y110 w80 h20 gDoTestFilesExist, GO
+Gui Add, Button, x41 y110 w80 h20 gDoGo, GO
 Gui Add, ListView, x40 y160 w469 h141 +LV0x4000, file|Size|folder name|result
-
+LV_ModifyCol(1, 70)
+LV_ModifyCol(2, 70)
+LV_ModifyCol(3, 70)
+LV_ModifyCol(4, 150)
 Gui Show, w1022 h544, Window
 return
 
@@ -35,11 +38,16 @@ DoBrowseDest:
         GuiControl,,DestinationFolderEdit,%res%
 return
 
-DoTestFilesExist:
+DoGo:
+    GuiControlGet, destinationFolder,,DestinationFolderEdit
+    GuiControlGet, sourceFolder,,SourceFolderEdit
     TestFilesExist()
+    if notExistArr.Length() < 1
+    {
+        MsgBox, nothing
+        return
+    }
     MsgBox, 260, copy, Would you like to copy?
-    IfMsgBox No
-        ExitApp
     IfMsgBox Yes
     {
         resultCopy := CopyFiles()
@@ -53,6 +61,7 @@ TestFilesExist()
     global sourceFolder
     global destinationFolder
     global folderFormat
+    LV_Delete()
     
     Loop, Files, %sourceFolder%\*.*, R
     {
@@ -75,7 +84,6 @@ TestFilesExist()
         
         LV_Add("", A_LoopFileName, A_LoopFileSizeKB, formatedTime, msg)
     }
-    LV_ModifyCol()
     return
 }
 
@@ -108,8 +116,9 @@ CopyFiles()
             successCount ++
             msg = Success
         }
-        LV_Add("", A_LoopFileName, A_LoopFileSizeKB, formatedTime, msg)
+        SplitPath, filePath, fileName
+        FileGetSize, fileSize, filePath
+        LV_Add("", fileName, fileSize, formatedTime, msg)
     }
-    LV_ModifyCol()
     return {errorCount: errorCount, successCount: successCount}
 }

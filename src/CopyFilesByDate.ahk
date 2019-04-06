@@ -15,15 +15,19 @@ Gui Add, Button, x416 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x41 y50 w120 h20 +0x200 , To folder
 Gui Add, Edit, x120 y50 w250 h20 vDestinationFolderEdit, %destinationFolder%
 Gui Add, Button, x416 y50 w80 h20 gDoBrowseDest vButBrowseDest, browse
-Gui Add, Text, x40 y80 w120 h20 +0x200 , Date format
-Gui Add, Edit, x120 y80 w181 h20, %folderFormat%
-Gui Add, Button, x41 y110 w80 h20 gDoGo, GO
-Gui Add, ListView, x40 y160 w469 h141 +LV0x4000, file|Size|folder name|result
+Gui Add, Text, x40 y80 w120 h20 +0x200 , Folder format
+Gui Add, Edit, x120 y80 w181 h20  ReadOnly, %folderFormat%
+Gui Add, Button, x40 y120 w80 h30 gDoGo, GO
+Gui Add, ListView, x40 y170 w469 h141 +LV0x4000, file name|Size|folder name|result
+Gui, Font, s14
+Gui,Add, Text, x40 y350 w469 h141 vTextMessage, Jah Bless
+Gui, Add, Button, x40 y400 gDoCopy vYeSButton, Yes
 LV_ModifyCol(1, 70)
 LV_ModifyCol(2, 70)
-LV_ModifyCol(3, 70)
+LV_ModifyCol(3, 100)
 LV_ModifyCol(4, 150)
-Gui Show, w1022 h544, Window
+GuiControl, Hide, YeSButton
+Gui Show, w550 h500, Window
 return
 
 DoBrowseSource:
@@ -44,15 +48,26 @@ DoGo:
     TestFilesExist()
     if notExistArr.Length() < 1
     {
-        MsgBox, nothing
+        GuiControl,,TextMessage, nothing to do, all files already exist
         return
     }
-    MsgBox, 260, copy, Would you like to copy?
-    IfMsgBox Yes
+    else
     {
-        resultCopy := CopyFiles()
-        MsgBox % resultCopy.successCount " files copied`n" resultCopy.errorCount " files not copied"
-   }
+        GuiControl,,TextMessage, % "those " notExistArr.Length() " files not exist, copy them?"
+        GuiControl, Show, YeSButton
+    }
+return
+
+DoCopy:
+    GuiControl, Hide, YeSButton
+    resultCopy := CopyFiles()
+    notCopied :=
+    if resultCopy.errorCount > 0
+    {
+        notCopied :=  "`n" resultCopy.errorCount " files not copied"
+    }
+        
+    GuiControl,,TextMessage, % resultCopy.successCount " files copied" notCopied
 return
 
 TestFilesExist()
@@ -114,7 +129,7 @@ CopyFiles()
         else
         {
             successCount ++
-            msg = Success
+            msg = Success, file copied
         }
         SplitPath, filePath, fileName
         FileGetSize, fileSize, filePath

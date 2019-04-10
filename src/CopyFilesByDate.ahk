@@ -9,13 +9,14 @@ destinationFolder := % A_Desktop "\target"
 folderFormat = yyyy-MM-dd
 notExistArr := []
 extensions := "*"
+includeSub := "R"
 
 Gui Add, Text, x40 y20 h20 +0x200, From folder
 Gui Add, Edit, x120 y20 w250 h20 vSourceFolderEdit, %sourceFolder%
 Gui Add, Button, x380 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x40 y50 h20 +0x200, Extensions
-Gui Add, Edit, x120 y50 w90 h20 disabled, %extensions%
-Gui, Add, Checkbox, x260 y50 h20 Checked1 disabled, Include sub Folders
+Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit disabled, %extensions%
+Gui, Add, Checkbox, x260 y50 h20 Checked1 vSubFoldersChekbox, Include sub Folders
 Gui Add, Text, x40 y80 h20 +0x200, To folder
 Gui Add, Edit, x120 y80 w250 h20 vDestinationFolderEdit, %destinationFolder%
 Gui Add, Button, x380 y80 w80 h20 gDoBrowseDest vButBrowseDest, browse
@@ -39,7 +40,6 @@ GuiEscape:
 GuiClose:
     ExitApp
 
-
 DoBrowseSource:
     FileSelectFolder, res, *%sourceFolder%, 0, Select source folder
     if res != 
@@ -56,6 +56,14 @@ DoGo:
     GuiControlGet, destinationFolder,,DestinationFolderEdit
     GuiControlGet, sourceFolder,,SourceFolderEdit
     GuiControlGet, folderFormat,,FolderFormatEdit
+    GuiControlGet, sub,,SubFoldersChekbox
+    GuiControlGet, extensions,,ExtensionsEdit
+    
+    if sub < 1
+        includeSub = 
+    else
+        includeSub = R
+        
     TestFilesExist()
     if notExistArr.Length() < 1
     {
@@ -87,9 +95,11 @@ TestFilesExist()
     global sourceFolder
     global destinationFolder
     global folderFormat
+    global includeSub
+    global extensions
     LV_Delete()
     
-    Loop, Files, %sourceFolder%\*.*, R
+    Loop, Files, %sourceFolder%\%extensions%, %includeSub%
     {
         msg =
         FormatTime, formatedTime, %A_LoopFileTimeCreated%, %folderFormat%

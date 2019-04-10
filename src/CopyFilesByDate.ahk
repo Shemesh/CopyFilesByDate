@@ -26,14 +26,14 @@ Gui, Add, Link, x230 y113, <a href="https://autohotkey.com/docs/commands/FormatT
 Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, GO
 Gui Add, ListView, x40 y200 w469 h141 +LV0x4000, file name|folder name|result
 Gui, Font, s14
-Gui,Add, Text, x40 y380 w469 h141 vTextMessage, Jah Bless
-Gui, Add, Button, x40 y430 gDoCopy vYeSButton, Yes
+Gui,Add, Text, x40 y380 w470 h50 vTextMessage, Jah Bless
+Gui, Add, Button, x40 y450 gDoCopy vYeSButton, Yes
 LV_ModifyCol(1, 70)
 LV_ModifyCol(2, 100)
 LV_ModifyCol(3, 150)
 GuiControl, Focus, GoButton
 GuiControl, Hide, YeSButton
-Gui Show, w550 h520, Copy Files by date
+Gui Show, w550 h540, Copy Files by date
 Return
 
 GuiEscape:
@@ -120,7 +120,6 @@ TestFilesExist()
         
         LV_Add("", A_LoopFileName, formatedTime, msg)
     }
-    return
 }
 
 CopyFiles()

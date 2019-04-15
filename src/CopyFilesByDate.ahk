@@ -6,23 +6,24 @@ SetWorkingDir %A_ScriptDir%
 
 sourceFolder := % A_Desktop "\XXX"
 destinationFolder := % A_Desktop "\target"
-folderFormat = yyyy-MM-dd
+folderFormat := "yyyy-MM-dd"
 notExistArr := []
-extensions := "*"
+extensions := "ALL" ;"jpg,png"
 includeSub := "R"
 
 Gui Add, Text, x40 y20 h20 +0x200, From folder
 Gui Add, Edit, x120 y20 w250 h20 vSourceFolderEdit, %sourceFolder%
 Gui Add, Button, x380 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x40 y50 h20 +0x200, Extensions
-Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit disabled, %extensions%
+Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit, %extensions%
+;Gui, Add, Link, x215 y52, ?
 Gui, Add, Checkbox, x260 y50 h20 Checked1 vSubFoldersChekbox, Include sub Folders
 Gui Add, Text, x40 y80 h20 +0x200, To folder
 Gui Add, Edit, x120 y80 w250 h20 vDestinationFolderEdit, %destinationFolder%
 Gui Add, Button, x380 y80 w80 h20 gDoBrowseDest vButBrowseDest, browse
 Gui Add, Text, x40 y110 w120 h20 +0x200, Folder format
 Gui Add, Edit, x120 y110 w100 h20 vFolderFormatEdit, %folderFormat%
-Gui, Add, Link, x230 y113, <a href="https://autohotkey.com/docs/commands/FormatTime.htm#Date_Formats_case_sensitive">?</a>
+Gui, Add, Link, x225 y113, <a href="https://autohotkey.com/docs/commands/FormatTime.htm#Date_Formats_case_sensitive">?</a>
 Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, GO
 Gui Add, ListView, x40 y200 w469 h141 +LV0x4000, file name|folder name|result
 Gui, Font, s14
@@ -97,10 +98,16 @@ TestFilesExist()
     global folderFormat
     global includeSub
     global extensions
+    
+    StringReplace ,extensions, extensions, %A_Space%,,All
+    
     LV_Delete()
     
-    Loop, Files, %sourceFolder%\%extensions%, %includeSub%
+    Loop, Files, %sourceFolder%\*.*, %includeSub%
     {
+        If not InStr(extensions, "ALL", 1) && not InStr(extensions, A_LoopFileExt) ;and A_LoopFileExt not in %extensions%
+            Continue
+            
         msg =
         FormatTime, formatedTime, %A_LoopFileTimeCreated%, %folderFormat%
         tFolder := destinationFolder . "\" . formatedTime

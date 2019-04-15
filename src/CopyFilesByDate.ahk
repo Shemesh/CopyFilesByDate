@@ -16,7 +16,7 @@ Gui Add, Edit, x120 y20 w250 h20 vSourceFolderEdit, %sourceFolder%
 Gui Add, Button, x380 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x40 y50 h20 +0x200, Extensions
 Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit, %extensions%
-;Gui, Add, Link, x215 y52, ?
+Gui, Add, Link, x215 y52 vExtensionsHelp, ?
 Gui, Add, Checkbox, x260 y50 h20 Checked1 vSubFoldersChekbox, Include sub Folders
 Gui Add, Text, x40 y80 h20 +0x200, To folder
 Gui Add, Edit, x120 y80 w250 h20 vDestinationFolderEdit, %destinationFolder%
@@ -35,6 +35,7 @@ LV_ModifyCol(3, 150)
 GuiControl, Focus, GoButton
 GuiControl, Hide, YeSButton
 Gui Show, w550 h540, Copy Files by date
+OnMessage(0x200, "WM_MOUSEMOVE")
 Return
 
 GuiEscape:
@@ -90,6 +91,25 @@ DoCopy:
     GuiControl,,TextMessage, % resultCopy.successCount " files copied" notCopied
 return
 
+WM_MOUSEMOVE(){
+	MouseGetPos,,,, OutputVarControl
+    tip = ALL (in capital letters) meaning all file types.`notherwise comma seperated file types (no spaces).`nexample: png,txt,jpg
+
+    IfEqual, OutputVarControl, SysLink1
+        ToolTip % tip
+    else
+        ToolTip
+}
+
+
+ObjIndexOf(obj, item, case_sensitive:=false)
+{
+	for i, val in obj {
+		if (case_sensitive ? (val == item) : (val = item))
+			return i
+	}
+}
+
 TestFilesExist()
 {
     global notExistArr := []
@@ -99,13 +119,13 @@ TestFilesExist()
     global includeSub
     global extensions
     
-    StringReplace ,extensions, extensions, %A_Space%,,All
+    extArray := StrSplit(extensions, ",")
     
     LV_Delete()
     
     Loop, Files, %sourceFolder%\*.*, %includeSub%
     {
-        If not InStr(extensions, "ALL", 1) && not InStr(extensions, A_LoopFileExt) ;and A_LoopFileExt not in %extensions%
+        If not ObjIndexOf(extArray, "ALL", true) && not ObjIndexOf(extArray, A_LoopFileExt)
             Continue
             
         msg =

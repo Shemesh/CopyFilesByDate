@@ -4,8 +4,8 @@
 SendMode Input 
 SetWorkingDir %A_ScriptDir%
 
-sourceFolder := % A_Desktop "\XXX"
-destinationFolder := % A_Desktop "\target"
+sourceFolder := % A_Desktop
+destinationFolder := % A_Desktop
 folderFormat := "yyyy-MM-dd"
 notExistArr := []
 extensions := "ALL"
@@ -30,16 +30,13 @@ Gui Add, Text, x40 y110 w120 h20 +0x200, Folder format
 Gui Add, Edit, x120 y110 w100 h20 vFolderFormatEdit, %folderFormat%
 Gui, Add, Link, x225 y113, <a href="https://autohotkey.com/docs/commands/FormatTime.htm#Date_Formats_case_sensitive">?</a>
 Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, GO
-Gui Add, ListView, x40 y200 w469 h141 +LV0x4000, file name|folder name|result
 Gui, Add, Link, x530 y520, <a href="https://github.com/Shemesh/CopyFilesByDate">@</a>
+Gui Add, ListView, x40 y200 w469 h141 +LV0x4000, file name|target folder name|result
 Gui, Font, s14
 Gui,Add, Text, x40 y380 w470 h50 vTextMessage, Jah Bless
 Gui, Add, Button, x40 y450 gDoCopy vYeSButton, Yes
-;ImageListID := IL_Create(1)
-;LV_SetImageList(ImageListID)
-;IL_Add(ImageListID, "shell32.dll", 9) 
-LV_ModifyCol(1, 70)
-LV_ModifyCol(2, 100)
+LV_ModifyCol(1, 120)
+LV_ModifyCol(2, 120)
 LV_ModifyCol(3, 150)
 GuiControl, Focus, GoButton
 GuiControl, Hide, YeSButton
@@ -147,14 +144,14 @@ TestFilesExist()
         tFile := tFolder . "\" . A_LoopFileName
         if !FileExist(tFolder)
         {
-            msg = + target folder not exist
+            msg = ! target folder not exist
             notExistArr.Push(A_LoopFileLongPath)
         }  
         else if FileExist(tFile)
-            msg = - file already exist
+            msg = ✔ file exist
         else
         {
-            msg = + file not exist
+            msg = ! file not exist
             notExistArr.Push(A_LoopFileLongPath)
         }
         
@@ -183,13 +180,13 @@ CopyFiles()
         FileCopy, %filePath%, %tfolder%, 0
         if ErrorLevel
         {
-            msg = could NOT copy %filePath% into %destinationFolder%.
+            msg = ! could NOT copy %filePath% into %destinationFolder%.
             errorCount ++
         }
         else
         {
             successCount ++
-            msg = Success, file copied
+            msg = ✔ Success, file copied
         }
         SplitPath, filePath, fileName
         FileGetSize, fileSize, filePath

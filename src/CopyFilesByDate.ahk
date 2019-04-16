@@ -11,7 +11,10 @@ notExistArr := []
 extensions := "ALL"
 includeSub := "R"
 
-Menu, Tray, Icon, Next_arrow_1559.ico
+IfNotExist, %A_Temp%/Next_arrow_1559.ico
+  FileInstall, Next_arrow_1559.ico, %A_Temp%/Next_arrow_1559.ico, 1
+
+Menu, Tray, Icon, %A_Temp%/Next_arrow_1559.ico
 Menu, Tray, Tip, Copy files by date
 Menu, Tray, NoStandard
 Menu, tray, add, Exit, MenuExit

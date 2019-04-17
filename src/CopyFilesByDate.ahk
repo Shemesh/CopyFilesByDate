@@ -4,18 +4,28 @@
 SendMode Input 
 SetWorkingDir %A_ScriptDir%
 
-sourceFolder := % A_Desktop
-destinationFolder := % A_Desktop
-folderFormat := "yyyy-MM-dd"
+sourceFolder :=
+destinationFolder :=
+folderFormat :=
 notExistArr := []
-extensions := "ALL"
-includeSub := "R"
+extensions :=
+includeSub :=
 LVArray := []
 
-IfNotExist, %A_Temp%/Next_arrow_1559.ico
-  FileInstall, Next_arrow_1559.ico, %A_Temp%/Next_arrow_1559.ico, 1
+IfNotExist, %A_Temp%\Next_arrow_1559.ico
+  FileInstall, Next_arrow_1559.ico, %A_Temp%\Next_arrow_1559.ico, 1
+  
+IniRead, sourceFolder, %A_Temp%\CopyFilesByDate.ini, data, sourceFolder, % A_Desktop
+IniRead, destinationFolder, %A_Temp%\CopyFilesByDate.ini, data, destinationFolder,  % A_Desktop
+IniRead, folderFormat, %A_Temp%\CopyFilesByDate.ini, data, folderFormat, yyyy-MM-dd
+IniRead, extensions, %A_Temp%\CopyFilesByDate.ini, data, extensions, ALL
+IniRead, includeSub, %A_Temp%\CopyFilesByDate.ini, data, includeSub, "R"
 
-Menu, Tray, Icon, %A_Temp%/Next_arrow_1559.ico
+subCheck = 1
+if includeSub =
+    subCheck = 0
+
+Menu, Tray, Icon, %A_Temp%\Next_arrow_1559.ico
 Menu, Tray, Tip, Copy files by date
 Menu, Tray, NoStandard
 Menu, tray, add, Exit, MenuExit
@@ -26,7 +36,7 @@ Gui Add, Button, x380 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x40 y50 h20 +0x200, Extensions
 Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit, %extensions%
 Gui, Add, Link, x215 y52 vExtensionsHelp, ?
-Gui, Add, Checkbox, x260 y50 h20 Checked1 vSubFoldersChekbox, Include sub Folders
+Gui, Add, Checkbox, x260 y50 h20 Checked%subCheck% vSubFoldersChekbox, Include sub Folders
 Gui Add, Text, x40 y80 h20 +0x200, To folder
 Gui Add, Edit, x120 y80 w250 h20 vDestinationFolderEdit, %destinationFolder%
 Gui Add, Button, x380 y80 w80 h20 gDoBrowseDest vButBrowseDest, browse
@@ -66,11 +76,6 @@ SearchList:
     LV_Delete()
     For Each, item In LVArray
     {
-       ;If (SearchTerm != "")
-       ;{
-          ;If InStr(item.name, SearchTerm)
-             ;LV_Add("", item.name, item.time, item.message)
-       ;}
        if (ShowExisting > 0 && InStr(item.name, SearchTerm))
        {
             LV_Add("", item.name, item.time, item.message)
@@ -97,7 +102,6 @@ DoGo:
     GuiControl,,TextMessage, checking...
     GuiControl, Hide, YeSButton
     GuiControl, +Disabled, GoButton
-    Control, Uncheck ,, Button5
     
     GuiControlGet, destinationFolder,,DestinationFolderEdit
     GuiControlGet, sourceFolder,,SourceFolderEdit
@@ -121,6 +125,7 @@ DoGo:
         GuiControl, Show, YeSButton
     }
     GuiControl, -Disabled, GoButton
+    GoSub SearchList
 return
 
 DoCopy:
@@ -166,6 +171,12 @@ TestFilesExist()
     
     extArray := StrSplit(extensions, ",")
     
+    IniWrite, %sourceFolder%, %A_Temp%\CopyFilesByDate.ini, data, sourceFolder
+    IniWrite, %destinationFolder%, %A_Temp%\CopyFilesByDate.ini, data, destinationFolder
+    IniWrite, %extensions%, %A_Temp%\CopyFilesByDate.ini, data, extensions
+    IniWrite, %folderFormat%, %A_Temp%\CopyFilesByDate.ini, data, folderFormat
+    IniWrite, %includeSub%, %A_Temp%\CopyFilesByDate.ini, data, includeSub
+        
     LV_Delete()
     
     Loop, Files, %sourceFolder%\*.*, %includeSub%

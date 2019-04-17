@@ -10,6 +10,7 @@ folderFormat := "yyyy-MM-dd"
 notExistArr := []
 extensions := "ALL"
 includeSub := "R"
+LVArray := []
 
 IfNotExist, %A_Temp%/Next_arrow_1559.ico
   FileInstall, Next_arrow_1559.ico, %A_Temp%/Next_arrow_1559.ico, 1
@@ -32,12 +33,15 @@ Gui Add, Button, x380 y80 w80 h20 gDoBrowseDest vButBrowseDest, browse
 Gui Add, Text, x40 y110 w120 h20 +0x200, Folder format
 Gui Add, Edit, x120 y110 w100 h20 vFolderFormatEdit, %folderFormat%
 Gui, Add, Link, x225 y113, <a href="https://autohotkey.com/docs/commands/FormatTime.htm#Date_Formats_case_sensitive">?</a>
-Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, GO
+Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, Check
 Gui, Add, Link, x530 y520, <a href="https://github.com/Shemesh/CopyFilesByDate">@</a>
-Gui Add, ListView, x40 y200 w469 h141 +LV0x4000, file name|target folder name|result
+Gui Add, Text, x40 y210 h20 +0x200, Find
+Gui Add, Edit, x65 y210 w95 h20 vSearchLv gSearchList
+Gui, Add, Checkbox, x200 y210 h20 Checked0 vCheckboxLv gSearchList, Show existing
+Gui Add, ListView, x40 y235 w469 h141 +LV0x4000 vLV, file name|target folder name|result
 Gui, Font, s14
-Gui,Add, Text, x40 y380 w470 h50 vTextMessage, Jah Bless
-Gui, Add, Button, x40 y450 gDoCopy vYeSButton, Yes
+Gui,Add, Text, x40 y400 w470 h50 vTextMessage, Jah Bless
+Gui, Add, Button, x40 y480 gDoCopy vYeSButton, Yes
 LV_ModifyCol(1, 120)
 LV_ModifyCol(2, 120)
 LV_ModifyCol(3, 150)
@@ -55,6 +59,28 @@ MenuExit:
     ExitApp
 return
 
+SearchList:
+    GuiControlGet, SearchTerm,, SearchLv
+    GuiControlGet, ShowExisting,, CheckboxLv
+    GuiControl, -Redraw, LV
+    LV_Delete()
+    For Each, item In LVArray
+    {
+       ;If (SearchTerm != "")
+       ;{
+          ;If InStr(item.name, SearchTerm)
+             ;LV_Add("", item.name, item.time, item.message)
+       ;}
+       if (ShowExisting > 0 && InStr(item.name, SearchTerm))
+       {
+            LV_Add("", item.name, item.time, item.message)
+       }
+       Else if not InStr(item.message, "file exist") && InStr(item.name, SearchTerm)
+          LV_Add("", item.name, item.time, item.message)
+    }
+    GuiControl, +Redraw, LV
+Return
+
 DoBrowseSource:
     FileSelectFolder, res, *%sourceFolder%, 0, Select source folder
     if res != 
@@ -68,6 +94,11 @@ DoBrowseDest:
 return
 
 DoGo:
+    GuiControl,,TextMessage, checking...
+    GuiControl, Hide, YeSButton
+    GuiControl, +Disabled, GoButton
+    Control, Uncheck ,, Button5
+    
     GuiControlGet, destinationFolder,,DestinationFolderEdit
     GuiControlGet, sourceFolder,,SourceFolderEdit
     GuiControlGet, folderFormat,,FolderFormatEdit
@@ -83,13 +114,13 @@ DoGo:
     if notExistArr.Length() < 1
     {
         GuiControl,,TextMessage, nothing to do, all files already exist
-        return
     }
     else
     {
         GuiControl,,TextMessage, % notExistArr.Length() " files not exist, copy them?"
         GuiControl, Show, YeSButton
     }
+    GuiControl, -Disabled, GoButton
 return
 
 DoCopy:
@@ -131,6 +162,7 @@ TestFilesExist()
     global folderFormat
     global includeSub
     global extensions
+    global LVArray := []
     
     extArray := StrSplit(extensions, ",")
     
@@ -149,6 +181,7 @@ TestFilesExist()
         {
             msg = ! target folder not exist
             notExistArr.Push(A_LoopFileLongPath)
+            LV_Add("", A_LoopFileName, formatedTime, msg)
         }  
         else if FileExist(tFile)
             msg = ✔ file exist
@@ -156,9 +189,10 @@ TestFilesExist()
         {
             msg = ! file not exist
             notExistArr.Push(A_LoopFileLongPath)
+            LV_Add("", A_LoopFileName, formatedTime, msg)
         }
         
-        LV_Add("Icon1", A_LoopFileName, formatedTime, msg)
+        LVArray.Push({name:A_LoopFileName, time:formatedTime, message:msg})
     }
 }
 

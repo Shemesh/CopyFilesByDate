@@ -193,18 +193,32 @@ TestFilesExist()
             msg = ! target folder not exist
             notExistArr.Push(A_LoopFileLongPath)
             LV_Add("", A_LoopFileName, formatedTime, msg)
-        }  
-        else if FileExist(tFile)
-            msg = ✔ file exist
+        } 
         else
         {
-            msg = ! file not exist
-            notExistArr.Push(A_LoopFileLongPath)
-            LV_Add("", A_LoopFileName, formatedTime, msg)
+            if FileExistInSub(tFolder, tFile)
+                msg = ✔ file exist
+            else
+                {
+                    msg = ! file not exist
+                    notExistArr.Push(A_LoopFileLongPath)
+                    LV_Add("", A_LoopFileName, formatedTime, msg)
+                }
         }
         
         LVArray.Push({name:A_LoopFileName, time:formatedTime, message:msg})
     }
+}
+
+
+FileExistInSub(tFolder, tfile)
+{
+    Loop, Files, %tFolder%\*.*, R
+    {
+        if A_LoopFileLongPath = %tfile%
+            return true
+    }
+    return false
 }
 
 CopyFiles()
@@ -237,7 +251,6 @@ CopyFiles()
             msg = ✔ Success, file copied
         }
         SplitPath, filePath, fileName
-        FileGetSize, fileSize, filePath
         LV_Add("", fileName, formatedTime, msg)
     }
     return {errorCount: errorCount, successCount: successCount}

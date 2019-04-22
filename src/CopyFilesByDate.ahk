@@ -4,13 +4,13 @@
 SendMode Input 
 SetWorkingDir %A_ScriptDir%
 
-sourceFolder :=
-destinationFolder :=
-folderFormat :=
-notExistArr := []
-extensions :=
-includeSub :=
-LVArray := []
+sourceFolder = ""
+destinationFolder = ""
+folderFormat = ""
+notExistArr = []
+extensions = ""
+includeSub = ""
+LVArray = []
 
 IfNotExist, %A_Temp%\Next_arrow_1559.ico
   FileInstall, Next_arrow_1559.ico, %A_Temp%\Next_arrow_1559.ico, 1
@@ -36,7 +36,7 @@ Gui Add, Button, x380 y20 w80 h20 gDoBrowseSource vButBrowseSource, browse
 Gui Add, Text, x40 y50 h20 +0x200, Extensions
 Gui Add, Edit, x120 y50 w90 h20 vExtensionsEdit, %extensions%
 Gui, Add, Link, x215 y52 vExtensionsHelp, ?
-Gui, Add, Checkbox, x260 y50 h20 Checked%subCheck% vSubFoldersChekbox, Include sub Folders
+Gui, Add, Checkbox, x260 y50 h20 Checked%subCheck% vSubFoldersChekbox, Include sub folders
 Gui Add, Text, x40 y80 h20 +0x200, To folder
 Gui Add, Edit, x120 y80 w250 h20 vDestinationFolderEdit, %destinationFolder%
 Gui Add, Button, x380 y80 w80 h20 gDoBrowseDest vButBrowseDest, browse
@@ -44,7 +44,7 @@ Gui Add, Text, x40 y110 w120 h20 +0x200, Folder format
 Gui Add, Edit, x120 y110 w100 h20 vFolderFormatEdit, %folderFormat%
 Gui, Add, Link, x225 y113, <a href="https://autohotkey.com/docs/commands/FormatTime.htm#Date_Formats_case_sensitive">?</a>
 Gui Add, Button, x40 y150 w80 h30 gDoGo vGoButton, Check
-Gui, Add, Link, x530 y520, <a href="https://github.com/Shemesh/CopyFilesByDate">@</a>
+Gui, Add, Link, x530 y5, <a href="https://github.com/Shemesh/CopyFilesByDate">@</a>
 Gui Add, Text, x40 y210 h20 +0x200, Find
 Gui Add, Edit, x65 y210 w95 h20 vSearchLv gSearchList
 Gui, Add, Checkbox, x200 y210 h20 Checked0 vCheckboxLv gSearchList, Show existing
@@ -117,11 +117,11 @@ DoGo:
     TestFilesExist()
     if notExistArr.Length() < 1
     {
-        GuiControl,,TextMessage, nothing to do, all files already exist
+        GuiControl,,TextMessage, % LVArray.Length() " files checked`nall files already exist"
     }
     else
     {
-        GuiControl,,TextMessage, % notExistArr.Length() " files not exist, copy them?"
+        GuiControl,,TextMessage, % LVArray.Length() " files checked`n" notExistArr.Length() " files not exist, copy them?"
         GuiControl, Show, YeSButton
     }
     GuiControl, -Disabled, GoButton
@@ -131,7 +131,7 @@ return
 DoCopy:
     GuiControl, Hide, YeSButton
     resultCopy := CopyFiles()
-    notCopied :=
+    notCopied := ""
     if resultCopy.errorCount > 0
     {
         notCopied :=  "`n" resultCopy.errorCount " files not copied"
@@ -161,13 +161,13 @@ ObjIndexOf(obj, item, case_sensitive:=false)
 
 TestFilesExist()
 {
-    global notExistArr := []
+    global notExistArr = []
     global sourceFolder
     global destinationFolder
     global folderFormat
     global includeSub
     global extensions
-    global LVArray := []
+    global LVArray = []
     
     extArray := StrSplit(extensions, ",")
     
@@ -178,6 +178,7 @@ TestFilesExist()
     IniWrite, %includeSub%, %A_Temp%\CopyFilesByDate.ini, data, includeSub
         
     LV_Delete()
+    GuiControl, -Redraw, LV
     
     Loop, Files, %sourceFolder%\*.*, %includeSub%
     {
@@ -194,28 +195,33 @@ TestFilesExist()
             notExistArr.Push(A_LoopFileLongPath)
             LV_Add("", A_LoopFileName, formatedTime, msg)
         } 
+        else if FileExist(tFile)
+        {
+            msg = ✔ file exist
+        }
         else
         {
-            if FileExistInSub(tFolder, tFile)
+            if FileExistInSub(tFolder, A_LoopFileName)
                 msg = ✔ file exist
             else
-                {
-                    msg = ! file not exist
-                    notExistArr.Push(A_LoopFileLongPath)
-                    LV_Add("", A_LoopFileName, formatedTime, msg)
-                }
+            {
+                msg = ! file not exist
+                notExistArr.Push(A_LoopFileLongPath)
+                LV_Add("", A_LoopFileName, formatedTime, msg)
+            }
         }
         
         LVArray.Push({name:A_LoopFileName, time:formatedTime, message:msg})
     }
+    GuiControl, +Redraw, LV
 }
 
 
 FileExistInSub(tFolder, tfile)
 {
-    Loop, Files, %tFolder%\*.*, R
+    Loop, Files, %tFolder%\*.*, DR
     {
-        if A_LoopFileLongPath = %tfile%
+        if ( FileExist(A_LoopFileFullPath "\" tfile) ) 
             return true
     }
     return false
@@ -227,7 +233,10 @@ CopyFiles()
     global sourceFolder
     global destinationFolder
     global folderFormat
+    global LVArray = []
+    
     LV_Delete()
+    GuiControl, -Redraw, LV
     
     errorCount = 0
     successCount = 0
@@ -252,6 +261,8 @@ CopyFiles()
         }
         SplitPath, filePath, fileName
         LV_Add("", fileName, formatedTime, msg)
+        LVArray.Push({name:fileName, time:formatedTime, message:msg})
     }
+    GuiControl, +Redraw, LV
     return {errorCount: errorCount, successCount: successCount}
 }

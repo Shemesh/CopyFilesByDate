@@ -130,14 +130,9 @@ return
 
 DoCopy:
     GuiControl, Hide, YeSButton
-    resultCopy := CopyFiles()
-    notCopied := ""
-    if resultCopy.errorCount > 0
-    {
-        notCopied :=  "`n" resultCopy.errorCount " files not copied"
-    }
-        
-    GuiControl,,TextMessage, % resultCopy.successCount " files copied" notCopied
+    GuiControl, +Disabled, GoButton
+    CopyFiles()
+    GuiControl, -Disabled, GoButton
 return
 
 WM_MOUSEMOVE(){
@@ -236,7 +231,6 @@ CopyFiles()
     global LVArray = []
     
     LV_Delete()
-    GuiControl, -Redraw, LV
     
     errorCount = 0
     successCount = 0
@@ -262,7 +256,13 @@ CopyFiles()
         SplitPath, filePath, fileName
         LV_Add("", fileName, formatedTime, msg)
         LVArray.Push({name:fileName, time:formatedTime, message:msg})
+        
+        notCopied := ""
+        if errorCount > 0
+        {
+            notCopied :=  "`n" errorCount " files not copied"
+        }
+            
+        GuiControl,,TextMessage, % successCount " files copied" notCopied
     }
-    GuiControl, +Redraw, LV
-    return {errorCount: errorCount, successCount: successCount}
 }
